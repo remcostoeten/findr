@@ -9,6 +9,7 @@ import fnmatch
 import platform
 import re
 import json
+from itertools import islice
 from rich.console import Console
 from rich.syntax import Syntax
 from thefuzz import fuzz
@@ -170,10 +171,14 @@ class SearchTool:
         """Execute the search based on user parameters"""
         import select
         import sys
-        import msvcrt if sys.platform == "win32" else termios
         import tty
-        from itertools import islice
         
+        # Platform-specific imports
+        if sys.platform == "win32":
+            import msvcrt
+        else:
+            import termios
+
         def is_enter_pressed():
             if sys.platform == "win32":
                 # Windows implementation

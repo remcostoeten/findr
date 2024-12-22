@@ -1,47 +1,25 @@
 #!/bin/bash
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# Function to print styled messages
-print_step() { echo -e "\n${BLUE}$1${NC}"; }
-print_success() { echo -e "${GREEN}$1${NC}"; }
-print_error() { echo -e "${RED}$1${NC}"; exit 1; }
-print_warning() { echo -e "${YELLOW}$1${NC}"; }
-
-clear
+echo -e "\033[36m"
 cat << "EOF"
  _____ _           _      
 |  ___(_)_ __   __| |_ __ 
 | |_  | | '_ \ / _` | '__|
 |  _| | | | | | (_| | |   
 |_|   |_|_| |_|\__,_|_|   
+
+🔍 Interactive File Search Tool
+Version: 0.1.0
 EOF
-print_step "🔍 Interactive File Search Tool"
-echo -e "Version: 0.1.0\n"
+echo -e "\033[0m"
 
-# Check Python
-command -v python3 &> /dev/null || print_error "❌ Python 3 is required but not installed"
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Function to detect OS
-detect_os() {
-    case "$(uname -s)" in
-        Darwin*)    echo "mac" ;;
-        Linux*)     echo "linux" ;;
-        *)         echo "unknown" ;;
-    esac
-}
-
-# Function to detect current shell and config file
+# Function to detect current shell
 detect_shell() {
-    # Check if we're running in zsh
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/usr/bin/zsh" ] || [ "$SHELL" = "/bin/zsh" ]; then
         echo "zsh"
-    # Check if we're running in bash
     elif [ -n "$BASH_VERSION" ] || [ "$SHELL" = "/usr/bin/bash" ] || [ "$SHELL" = "/bin/bash" ]; then
         echo "bash"
     else
@@ -49,139 +27,111 @@ detect_shell() {
     fi
 }
 
-get_shell_config() {
-    local shell_type=$1
-    local os_type=$2
-    
-    case $shell_type in
-        "zsh")
-            if [ -f "$HOME/.zshrc" ]; then
-                echo "$HOME/.zshrc"
-            else
-                echo "$HOME/.zprofile"
-            fi
-            ;;
-        "bash")
-            if [ "$os_type" = "mac" ]; then
-                if [ -f "$HOME/.bash_profile" ]; then
-                    echo "$HOME/.bash_profile"
-                elif [ -f "$HOME/.profile" ]; then
-                    echo "$HOME/.profile"
-                else
-                    echo "$HOME/.bash_profile"
-                fi
-            else
-                if [ -f "$HOME/.bashrc" ]; then
-                    echo "$HOME/.bashrc"
-                else
-                    echo "$HOME/.bash_profile"
-                fi
-            fi
-            ;;
-        *)
-            if [ "$os_type" = "mac" ]; then
-                echo "$HOME/.profile"
-            else
-                echo "$HOME/.bashrc"
-            fi
-            ;;
-    esac
-}
-
-# Detect OS and current shell
-OS_TYPE=$(detect_os)
+# Detect current shell
 CURRENT_SHELL=$(detect_shell)
-print_step "🖥️  System Detection"
-echo -e "Detected OS: ${YELLOW}$OS_TYPE${NC}"
-echo -e "Detected shell: ${YELLOW}$CURRENT_SHELL${NC}"
+echo -e "\n🔍 Shell Detection"
+echo -e "Detected shell: $CURRENT_SHELL"
 
 # Interactive shell selection
 echo -e "\nSelect your shell configuration:"
-echo -e "${YELLOW}1${NC}) Zsh  (~/.zshrc)"
-if [ "$OS_TYPE" = "mac" ]; then
-    echo -e "${YELLOW}2${NC}) Bash (~/.bash_profile)"
-else
-    echo -e "${YELLOW}2${NC}) Bash (~/.bashrc)"
-fi
-echo -e "${YELLOW}3${NC}) I don't know (auto-detect)"
-read -p "Enter choice [1]: " shell_choice
+echo "1) Zsh  (~/.zshrc)"
+echo "2) Bash (~/.bashrc)"
+echo "3) I don't know (auto-detect)"
+read -p "Enter choice [1-3]: " shell_choice
 
-case ${shell_choice:-1} in
+case ${shell_choice:-3} in
     1) 
-        SHELL_TYPE="zsh"
         SHELL_CONFIG="$HOME/.zshrc"
         ;;
     2) 
-        SHELL_TYPE="bash"
-        if [ "$OS_TYPE" = "mac" ]; then
-            SHELL_CONFIG="$HOME/.bash_profile"
+        SHELL_CONFIG="$HOME/.bashrc"
+        ;;
+    3)  
+        if [ "$CURRENT_SHELL" = "zsh" ]; then
+            SHELL_CONFIG="$HOME/.zshrc"
         else
             SHELL_CONFIG="$HOME/.bashrc"
         fi
         ;;
     *)  
-        SHELL_TYPE=$CURRENT_SHELL
-        SHELL_CONFIG=$(get_shell_config "$SHELL_TYPE" "$OS_TYPE")
+        echo "Invalid choice. Using auto-detect."
+        if [ "$CURRENT_SHELL" = "zsh" ]; then
+            SHELL_CONFIG="$HOME/.zshrc"
+        else
+            SHELL_CONFIG="$HOME/.bashrc"
+        fi
         ;;
 esac
 
+echo -e "Using shell config: $SHELL_CONFIG"
+
 # Create config file if it doesn't exist
 if [ ! -f "$SHELL_CONFIG" ]; then
-    print_warning "Creating new config file: $SHELL_CONFIG"
+    echo "Creating new config file: $SHELL_CONFIG"
     touch "$SHELL_CONFIG"
 fi
 
-print_success "✓ Using shell config: $SHELL_CONFIG"
-
-# Setup
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-
-# Create virtual environment
-if [ ! -d "venv" ]; then
-    print_step "📦 Setting up environment..."
-    python3 -m venv venv || print_error "❌ Failed to create virtual environment"
+# Check Python installation
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Python 3 not found. Please install Python 3.7+"
+    exit 1
 fi
 
-# Install dependencies
-print_step "📥 Installing dependencies..."
-source venv/bin/activate || print_error "❌ Failed to activate virtual environment"
-pip install -q --upgrade pip
-pip install -q -r requirements.txt || print_error "❌ Failed to install dependencies"
+echo "✅ Found Python: $(python3 --version)"
 
-# Create findr executable
-print_step "📝 Creating findr command..."
-mkdir -p ~/.local/bin
-cat > ~/.local/bin/findr << EOF
-#!/bin/bash
-# Findr - Interactive File Search Tool
-cd "$SCRIPT_DIR" # Ensure we're in the right directory
-source venv/bin/activate
-PYTHONPATH="$SCRIPT_DIR/src" python3 -m findr.cli
-deactivate
-EOF
-chmod +x ~/.local/bin/findr || print_error "❌ Failed to make findr executable"
+# Create virtual environment
+echo "📦 Creating virtual environment..."
+python3 -m venv "$SCRIPT_DIR/venv" || {
+    echo "❌ Failed to create virtual environment"
+    exit 1
+}
 
-# Update PATH
-print_step "🔧 Updating system configuration..."
-# Remove old entries first
-sed -i '/# Findr/d' "$SHELL_CONFIG" 2>/dev/null
-sed -i '/findr/d' "$SHELL_CONFIG" 2>/dev/null
+# Activate virtual environment
+echo "🔄 Activating virtual environment..."
+source "$SCRIPT_DIR/venv/bin/activate" || {
+    echo "❌ Failed to activate virtual environment"
+    exit 1
+}
 
-# Add new PATH entry
-cat >> "$SHELL_CONFIG" << EOF
+# Upgrade pip and install dependencies
+echo "📥 Installing dependencies..."
+python3 -m pip install --upgrade pip || {
+    echo "❌ Failed to upgrade pip"
+    exit 1
+}
 
-# Findr - Interactive File Search Tool
-export PATH="\$HOME/.local/bin:\$PATH"
-EOF
+python3 -m pip install -r requirements.txt || {
+    echo "❌ Failed to install dependencies"
+    exit 1
+}
 
-# Update current session
-export PATH="$HOME/.local/bin:$PATH"
+# Install the package in development mode
+echo "📦 Installing findr in development mode..."
+python3 -m pip install -e . || {
+    echo "❌ Failed to install findr"
+    exit 1
+}
 
-# Success message
-print_success "\n✨ Installation complete!"
-print_step "🚀 To start using Findr:"
-echo -e "1. Run: ${YELLOW}source $SHELL_CONFIG${NC}"
-echo -e "2. Type: ${YELLOW}findr${NC} to start searching"
+# Create findr command
+FINDR_COMMAND="#!/bin/bash
+cd \"$SCRIPT_DIR\"
+source \"$SCRIPT_DIR/venv/bin/activate\"
+python3 -m findr.cli \"\$@\"
+deactivate"
 
-# VS Code specific instructions
-[ -n "$VSCODE_PID" ] && print_warning "\nℹ️  VS Code users: You may need to restart VS Code for the PATH changes to take effect"
+# Create the .local/bin directory if it doesn't exist
+mkdir -p "$HOME/.local/bin"
+
+# Create the findr executable
+echo "$FINDR_COMMAND" > "$HOME/.local/bin/findr"
+chmod +x "$HOME/.local/bin/findr"
+
+# Add ~/.local/bin to PATH if not already present
+if ! grep -q "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$SHELL_CONFIG"; then
+    echo -e "\n# Add ~/.local/bin to PATH for findr" >> "$SHELL_CONFIG"
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_CONFIG"
+fi
+
+echo -e "\n✨ Installation Complete!"
+echo "Please run: source $SHELL_CONFIG"
+echo "Then type 'findr' to start searching!"
