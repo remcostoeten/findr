@@ -1,8 +1,7 @@
 """
-Package initialization file. Exports main components and version.
+Findr - Interactive File Search Tool
 """
-from .core import SearchTool
+
 from .cli import main
 
-__version__ = "0.1.0"
-__all__ = ["SearchTool", "main"]
+__all__ = ['main']

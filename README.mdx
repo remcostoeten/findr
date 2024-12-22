@@ -1,39 +1,290 @@
-# Findr: Interactive File Search Tool
+# 🔍 Findr
 
-Findr is a powerful and user-friendly command-line tool that combines the functionality of `grep` and `find` with an interactive interface. It provides an intuitive way to search for files, folders, and content within files.
+Are you also to dump to remember `grep` or `find` commands? You're not alone!
 
-## Features
+A lightning-fast interactive file search tool with fuzzy matching and real-time results.
 
-- Interactive command-line interface with user-friendly prompts
-- Combined grep and find functionality
-- File and content search capabilities
-- Extension filtering
-- Size-based filtering
-- Configurable exclude patterns
-- Search history management
-- Rich terminal output with progress tracking
-- Configuration persistence
+## 🔧 Requirements
 
-## Installation
+### Windows
+- Python 3.7+ (from Microsoft Store or python.org)
+- pip (comes with Python)
+- git (from git-scm.com)
+- PowerShell or Command Prompt
 
-```bash
-pip install findr
+### Linux
+- Python 3.7+
+- pip
+- git
+
+### macOS
+- Python 3.7+ (`brew install python3` or download from python.org)
+- pip (comes with Python)
+- git (`brew install git` or install Xcode Command Line Tools)
+- Terminal access
+
+## ✨ Features
+
+- 🚀 Real-time search results as you type
+- 📁 Smart directory search
+- 🔍 Fuzzy file name matching
+- 📝 Content search with regex support
+- 🎯 File type filtering (Python, JavaScript, TypeScript, etc.)
+- ⚡ Fast search with early pruning
+- 🛑 Stop search anytime with Enter
+- 🎨 Beautiful terminal UI with colors
+
+## 🚀 Quick Start
+
+### Windows
+```powershell
+# Clone the repository
+git clone https://github.com/remcostoeten/findr.git
+cd findr
+
+# Run the installer (as Administrator in PowerShell)
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\install.ps1
+
+# Or manual installation
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python -m findr.cli
 ```
 
-## Quick Start
-
-Simply run:
-
+### Linux/macOS
 ```bash
+# Clone the repository
+git clone https://github.com/remcostoeten/findr.git
+cd findr
+
+# Run the installer
+chmod +x install.sh
+./install.sh
+
+# Start searching!
 findr
 ```
 
-Follow the interactive prompts to configure your search.
-
-## Development Setup
-
-1. Clone the repository:
+### Manual Installation (if installer fails)
 ```bash
-git clone https://github.com/remcostoeten/findr-grep-find-interactive-search-clitool.git
-cd findr-grep-find-interactive-search-clitool
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Linux/macOS
+# OR on Windows:
+.\venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Add to your shell config:
+# Linux/macOS (~/.bashrc, ~/.zshrc):
+export PATH="$HOME/.local/bin:$PATH"
+export PYTHONPATH="/path/to/findr/src:$PYTHONPATH"
+# OR on Windows (in PowerShell):
+$env:PYTHONPATH="C:\path\to\findr\src;$env:PYTHONPATH"
+
+# Run directly
+# Linux/macOS:
+PYTHONPATH=src python3 -m findr.cli
+# OR on Windows:
+set PYTHONPATH=src && python -m findr.cli
 ```
+
+## 💻 Usage
+
+### Basic Search Types
+
+1. **Find Files by Name**:
+   ```bash
+   findr
+   # Choose "🔍 Find files by name"
+   # Enter pattern like "config" or "*.js"
+   ```
+
+2. **Find Directories**:
+   ```bash
+   findr
+   # Choose "📁 Find folders only"
+   # Enter name like "src" or "*test*"
+   ```
+
+3. **Search File Contents**:
+   ```bash
+   findr
+   # Choose "📝 Find text inside files"
+   # Enter text to search for
+   ```
+
+4. **Search by File Type**:
+   ```bash
+   findr
+   # Choose "🎯 Find files by type"
+   # Select from available types
+   ```
+
+### Search Patterns
+
+- `test` - Find files/folders containing "test"
+- `*.js` - Find JavaScript files
+- `src/*` - Find files in src directory
+- `*.{js,ts}` - Find JS and TS files
+- `*test*` - Find anything containing "test"
+
+### Keyboard Controls
+
+- `↑/↓` - Navigate options
+- `Enter` - Select option or stop search
+- `Ctrl+C` - Exit
+- `h` - Show help
+- `q` - Quit
+
+## ⚙️ Configuration
+
+Default configuration is stored in `~/.findr/config.json`:
+
+```json
+{
+  "max_results": 1000,
+  "show_preview": true,
+  "fuzzy_threshold": 65,
+  "default_excludes": [
+    "node_modules",
+    ".git",
+    "__pycache__",
+    "dist",
+    ".next",
+    "build"
+  ],
+  "theme": "monokai"
+}
+```
+
+## 🔧 Development
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run in development mode
+PYTHONPATH=src python3 -m findr.cli
+```
+
+## 🐛 Known Issues
+
+- Terminal might need reset if search is interrupted (press `reset` command on Unix, or restart terminal on Windows)
+- Some special characters in file names might not display correctly
+- Large binary files are skipped for content search
+- On macOS, if you get permission errors:
+  - Run `chmod +x install.sh` before installation
+  - You might need to run `pip install --user` for global installation
+  - For Homebrew Python: Make sure it's in your PATH
+  - For system Python: You might need to use `sudo` for global installation
+
+## 🔧 Troubleshooting
+
+### Windows Specific
+1. **Python Installation**:
+   - Install from Microsoft Store or python.org
+   - Make sure to check "Add Python to PATH" during installation
+   - Run `python --version` to verify installation
+
+2. **Permission Issues**:
+   ```powershell
+   # Run PowerShell as Administrator
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+3. **Path Issues**:
+   - Check System Properties > Advanced > Environment Variables
+   - Add Python and pip to PATH if needed
+   - Restart PowerShell/CMD after PATH changes
+
+4. **Terminal Issues**:
+   - Use Windows Terminal (recommended)
+   - Or use PowerShell 7+ for better compatibility
+   - CMD might have limited color support
+
+### macOS Specific
+1. **Python Version Issues**:
+   ```bash
+   # Check Python version
+   python3 --version  # Should be 3.7+
+   
+   # If needed, install with Homebrew
+   brew install python3
+   ```
+
+2. **Permission Issues**:
+   ```bash
+   # Fix permissions
+   sudo chown -R $(whoami) $(brew --prefix)/*
+   
+   # Or install locally
+   pip install --user -r requirements.txt
+   ```
+
+3. **Terminal Access**:
+   - Go to System Preferences > Security & Privacy > Privacy
+   - Select "Full Disk Access"
+   - Add your Terminal app (Terminal.app or iTerm)
+
+4. **Path Issues**:
+   ```bash
+   # Add to your ~/.zshrc or ~/.bash_profile
+   export PATH="/usr/local/bin:$PATH"
+   export PATH="$HOME/Library/Python/3.9/bin:$PATH"  # Adjust version number
+   ```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Credits
+
+Created by [Remco Stoeten](https://github.com/remcostoeten)
+
+## 🔍 Examples
+
+1. **Find configuration files**:
+   ```bash
+   findr
+   # Choose "🎯 Find files by type"
+   # Select "⚙️ Config files"
+   ```
+
+2. **Search for TODO comments**:
+   ```bash
+   findr
+   # Choose "📝 Find text inside files"
+   # Enter "TODO"
+   # Optionally specify "*.{js,py,ts}"
+   ```
+
+3. **Find large media files**:
+   ```bash
+   findr
+   # Choose "🎯 Find files by type"
+   # Select "🖼️ Images" or "🎵 Media files"
+   # Enable size filter for large files
+   ```
+
+4. **Find source directories**:
+   ```bash
+   findr
+   # Choose "📁 Find folders only"
+   # Enter "src" or "*src*"
+   ```
